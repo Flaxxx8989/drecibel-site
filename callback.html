@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Authorization – Drécibel Publisher</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header><img src="logo.png" alt="Drécibel logo"><div><div class="name">DRÉCIBEL</div><div class="sub">Publisher · TikTok authorization</div></div></header>
+  <div id="inhalt" class="karte"><p>Reading authorization …</p></div>
+  <p class="hint">This page runs only in your browser. The code is not sent or stored anywhere – copy it into
+     <code>auth_tiktok.py</code> on your computer. It expires after a few minutes and works only once.</p>
+  <nav><a href="index.html">Home</a><a href="privacy.html">Privacy Policy</a></nav>
+</main>
+<script>
+// Liest ?code=… (URLSearchParams dekodiert %2A usw. automatisch) und zeigt ihn groß mit Kopier-Knopf
+const q = new URLSearchParams(location.search);
+const e = document.getElementById("inhalt");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+if (q.get("error")) {
+  e.classList.add("fehler");
+  e.innerHTML = `<h1>Authorization failed</h1><p><strong>${esc(q.get("error"))}</strong></p><p>${esc(q.get("error_description") || "")}</p>`;
+} else if (q.get("code")) {
+  const code = q.get("code");
+  e.innerHTML = `<h1>Your authorization code</h1>
+    <div class="code" id="code">${esc(code)}</div>
+    <button id="kopieren">Copy code</button> <span class="hint" id="info"></span>
+    ${q.get("state") ? `<p class="hint">state: <code>${esc(q.get("state"))}</code></p>` : ""}`;
+  document.getElementById("kopieren").onclick = async () => {
+    const b = document.getElementById("kopieren");
+    try { await navigator.clipboard.writeText(code); }
+    catch (f) {   // Zwischenablage blockiert: Text markieren
+      const r = document.createRange(); r.selectNodeContents(document.getElementById("code"));
+      getSelection().removeAllRanges(); getSelection().addRange(r);
+      document.getElementById("info").textContent = "Selected – press Ctrl+C";
+      return;
+    }
+    b.textContent = "Copied ✓"; b.classList.add("ok");
+    setTimeout(() => { b.textContent = "Copy code"; b.classList.remove("ok"); }, 2000);
+  };
+  history.replaceState(null, "", location.pathname);   // Code nicht in der Browser-Historie stehen lassen
+} else {
+  e.innerHTML = "<h1>No code</h1><p>Start the sign-in with <code>python auth_tiktok.py</code>.</p>";
+}
+</script>
+</body>
+</html>
